@@ -14,7 +14,7 @@ foreach (["cache", "log"] as $dir)
 require_once ('libs/class.cpanel.php');
 require_once ('config/config.php');
 require_once ('languages.php');
-require_once ('Cpanel_Dns_Updater.php');
+require_once ('CpanelDnsUpdater.php');
 
 define ("_IP_GETTER", $CDUconfig->ip_getter);
 define ("_CACHE_DIR", __DIR__ . "/cache");
