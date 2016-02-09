@@ -7,10 +7,15 @@ if (! is_file("config/config.php")) {
     exit();
 }
 
+if (! is_file("vendor/autoload.php")) { 
+    echo "Please run 'composer install' before use Cpanel DNS Updater";
+    exit();
+}
+
 foreach (["cache", "log"] as $dir)
     if (! is_dir($dir))
         mkdir($dir);
-
+    
 require_once ('vendor/autoload.php');
 require_once ('config/config.php');
 require_once ('languages.php');
