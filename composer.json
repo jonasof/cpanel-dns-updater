@@ -1,0 +1,5 @@
+{
+    "require": {
+        "gufy/cpanel-php": "1.0.*"
+    }
+}

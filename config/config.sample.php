@@ -4,10 +4,10 @@
 
 $CDUconfig = new stdClass();
 
-//hostname that you use to connect to cpanel (see the address in cpanel login page)
-$CDUconfig->hostname = "cpanel.mysite.com";
-
-$CDUconfig->port = 2083;
+// url that you use to connect to cpanel (see the address in cpanel login page)
+// put here http(s)://{hostname}:{port}
+// i dont know if this works with invalid certificates names
+$CDUconfig->url = "https://mysite.com:2083";
 
 //your cpanel user
 $CDUconfig->user = "myuser";
@@ -32,7 +32,3 @@ $CDUconfig->use_ip_cache = false;
 
 // app language
 $CDUconfig->language = "EN";
-
-$CDUconfig->use_ssl = true;
-
-$CDUconfig->allow_invalid_certs_and_names = false;

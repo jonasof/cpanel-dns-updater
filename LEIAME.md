@@ -16,7 +16,7 @@ Este pode ser um bom substituto ao serviço noip.com.
 Requisitos
 --------
 
-PHP >= 5.3
+PHP >= 5.4 (talvez funcione com 5.3)
 
 Como usar
 ---------
@@ -25,24 +25,24 @@ Passo 1: crie um subdomínio no cPanel tipo A com o seu ip atual (DNS Zone Edito
 
 Passo 2: clone o repositório ou baixe ao lado.
 
-Passo 3: coloque os arquivos em qualquer pasta desejada. Recomendo 
+Passo 3: instale as dependências com composer (composer install)
+
+Passo 4: coloque os arquivos em qualquer pasta desejada. Recomendo 
 /opt/cpanel-dns-updater. Você também pode colocar numa pasta web e executar 
 run.php.
 
-Passo 4: crie o arquivo config/config.php. Insira os dados solicitados no modelo 
+Passo 5: crie o arquivo config/config.php. Insira os dados solicitados no modelo 
 config/config.sample.php
 
-Passo 5: configure um cron para run.php (certifique-se de rodar com o mesmo 
+Passo 6: configure um cron para run.php (certifique-se de rodar com o mesmo 
 dono da pasta). Exemplo:
 0,30 * * * * /usr/bin/php /opt/cpanel-dns-updater/run.php 
 
 
 Bibliotecas
 -----------
-Este script usa a API cPanel
- * @author Gerardo Ortiz V.
- * @copyright (c) 2010 MB Works, Inc. 
- * @package cPanelAPI
+Este script usa a API "cpanel-php" <https://github.com/mgufrone/cpanel-php/tree/master> 
+de mgufrone.
 
 
 História

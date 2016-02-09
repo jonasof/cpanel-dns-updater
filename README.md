@@ -18,34 +18,34 @@ This script can be a good replacement to the service noip.com
 Requirements
 --------
 
-PHP >= 5.3
+PHP >= 5.4 (maybe works in 5.3)
 
 How to use
 ---------
 
-Passo 1: create one subdomain in cPanel type A with yout current IP (in DNS Zone 
+Pass 1: create one subdomain in cPanel type A with yout current IP (in DNS Zone 
 Editor).
 
-Passo 2: clone/download this repository.
+Pass 2: clone/download this repository.
 
-Passo 3: put the files in any desidered folder. I recommend 
+Pass 3: install dependencies with composer (composer install)
+
+Pass 4: put the files in any desidered folder. I recommend 
 /opt/cpanel-dns-updater. If you want, you can put it in a web folder and run 
 run.php.
 
-Passo 4: create the file config/config.php. Insert the data required in 
+Pass 5: create the file config/config.php. Insert the data required in 
 config/config.sample.php
 
-Passo 5: configure an cron to run.php (asset run with the same owner of folder). 
+Pass 6: configure an cron to run.php (asset run with the same owner of folder). 
 Exemple:
 0,30 * * * * /usr/bin/php /opt/cpanel-dns-updater/run.php 
 
 
 Libraries
 -----------
-This script uses API cPanel
- * @author Gerardo Ortiz V.
- * @copyright (c) 2010 MB Works, Inc. 
- * @package cPanelAPI
+This script uses the API "cpanel-php" <https://github.com/mgufrone/cpanel-php/tree/master> 
+from mgufrone.
 
 
 History
