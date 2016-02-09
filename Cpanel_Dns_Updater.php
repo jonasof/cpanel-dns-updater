@@ -42,9 +42,7 @@ class Cpanel_Dns_Updater {
         if ($real_ip == $this->get_my_cache_ip()) {
             $this->log($this->messages["CACHE_EQUAL_REMOTE_MESSAGE"]);
             exit;
-        } else {
-            $this->set_cache_ip($real_ip);
-        }
+        } 
         
         foreach($this->config->subdomains_to_update as $id=>$subdomain) {
             
@@ -66,6 +64,8 @@ class Cpanel_Dns_Updater {
             }
 
         }
+        
+        $this->set_cache_ip($real_ip);
 
     }
 
@@ -98,7 +98,7 @@ class Cpanel_Dns_Updater {
                     'cpanel_jsonapi_module' => 'ZoneEdit',
                     'cpanel_jsonapi_func' => 'fetchzone',
                     'domain' => $this->config->domain));
-
+        
         if(($response !== false) && !strpos($response, 'could not')) {
             return json_decode(substr($response, strpos($response,"\r\n\r\n")+4));
         } else {
