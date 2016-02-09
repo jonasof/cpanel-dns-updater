@@ -6,7 +6,7 @@
  */
 class Cpanel_Dns_Updater {
 
-    /** @var Cpanel $cpanel */
+    /** @var cPanel $cpanel */
     private $cpanel;
     private $config;
     private $messages;
@@ -25,13 +25,13 @@ class Cpanel_Dns_Updater {
         }
         $this->messages = $messages;
         
-        $this->cpanel = new Cpanel(
+        $this->cpanel = new cPanel(
             $this->config->hostname, 
             $this->config->user,  
             $this->config->password, 
-            2083, 
-            'x3', 
-            true
+            $this->config->port, 
+            $this->config->frontend, 
+            $this->config->use_ssl
         );
     }
 
