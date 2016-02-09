@@ -1,6 +1,8 @@
 CPANEL DNS UPDATER
 ==================
 
+[Descrição em português](LEIAME.md)
+
 This scripts update the IP of the client subdomain with a server running cPanel (like no-ip)
 
 Example: imagine that you own one website with cPanel, in the domain 
