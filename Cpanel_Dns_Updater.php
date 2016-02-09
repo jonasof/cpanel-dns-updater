@@ -80,10 +80,10 @@ class Cpanel_Dns_Updater {
     }
 
     private function get_my_cache_ip () {
-        if ($this->config->use_ip_cache)
+        if ($this->config->use_ip_cache && is_file(_CACHE_DIR . "/ip"))
             return file_get_contents(_CACHE_DIR . "/ip");
-        else
-            return "";
+       
+        return "";
     }
 
     private function set_cache_ip ($ip) {
