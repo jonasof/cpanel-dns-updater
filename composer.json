@@ -1,5 +1,11 @@
 {
     "require": {
-        "gufy/cpanel-php": "1.0.*"
+        "gufy/cpanel-php": "1.0.*",
+        "desarrolla2/cache": "^2.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "JonasOF\\CpanelDnsUpdater\\" : "src/"
+        }
     }
 }
