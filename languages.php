@@ -8,6 +8,7 @@ return [
         "UNKNOW_UPDATE_ERROR_MESSAGE" => "ERROR - unknown error while updating IP",
         "DNS_IP_UPDATED_MESSAGE" => "OK    - IP updated to: ",
         "CANNOT_CONNECT_CPANEL" => "ERROR - Cannot connect to cpanel or API error",
+        "ZONE_NOT_FIND" => "ERROR - Zone not find",
     ],
 
     "PT_BR" => [
@@ -17,5 +18,6 @@ return [
         "UNKNOW_UPDATE_ERROR_MESSAGE" => "ERRO - erro desconhecido - não foi possivel atualizar meu IP",
         "DNS_IP_UPDATED_MESSAGE" => "OK   - IP atualizado para: ",
         "CANNOT_CONNECT_CPANEL" => "ERRO - Não foi possível conectar ao Cpanel ou erro de API",
+        "ZONE_NOT_FIND" => "ERRO - Zona não encontrada",
     ]
 ];

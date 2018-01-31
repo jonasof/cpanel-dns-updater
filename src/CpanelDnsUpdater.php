@@ -37,9 +37,13 @@ class CpanelDnsUpdater
 
     public function update_domains()
     {
+        $table_bruta = $this->get_table_of_json();
+
         foreach (['ipv4', 'ipv6'] as $ip_type) {
+            $zoneType = $ip_type === 'ipv6' ? 'AAAA' : 'A';
+
             if (! $this->config->modes[$ip_type])
-                return;
+                continue;
 
             try {
                 $real_ip = $this->get_my_remote_ip($this->config->modes[$ip_type . "_getter"]);
@@ -56,14 +60,18 @@ class CpanelDnsUpdater
             foreach ($this->config->subdomains_to_update as $subdomain) {
                 $subdomain .= ".";
 
-                $table_bruta = $this->get_table_of_json();
                 $json_table = $this->get_table_filtrada($table_bruta);
                 $serial_number = (int) $this->get_serial_number($table_bruta);
 
-                $info_dominio = ($this->get_registro_by_domain($subdomain, $json_table));
+                $info_dominio = $this->find_zone_by_domain($subdomain, $json_table, $zoneType);
+
+                if (is_null($info_dominio)) {
+                    CpanelDnsUpdaterLogger::log($this->messages["ZONE_NOT_FIND"] . ": $subdomain $zoneType");
+                    continue;
+                }
 
                 if ($info_dominio->address != $real_ip) {
-                    $this->change_dns_ip($subdomain, $real_ip, $info_dominio->line, $serial_number, $ip_type === "ipv6");
+                    $this->change_dns_ip($subdomain, $real_ip, $info_dominio->line, $serial_number, $zoneType);
                     $serial_number++;
                 } else {
                     CpanelDnsUpdaterLogger::log($this->messages["REAL_EQUAL_DOMAIN_MESSAGE"]);
@@ -87,6 +95,9 @@ class CpanelDnsUpdater
         }
     }
 
+    /**
+     * @return string @see /docs/sampleCpanelZonesResponse.json
+     */
     private function get_table_of_json()
     {
         $response = $this->cpanel->execute_action(2, "ZoneEdit", "fetchzone", $this->config->user,
@@ -106,12 +117,14 @@ class CpanelDnsUpdater
         return $table_json->cpanelresult->data[0]->record;
     }
 
-    private function get_registro_by_domain($domain, $table_filtrada)
+    private function find_zone_by_domain($domain, $zone_records, $zoneType = "A")
     {
-        foreach ($table_filtrada as $registro) {
-            $nome_dom = @$registro->name;
-            if ($nome_dom == $domain) {
-                return $registro;
+        foreach ($zone_records as $record) {
+            $current_domain = isset($record->name) ? $record->name : null;
+            $current_type = isset($record->type) ? $record->type : null;
+
+            if ($current_domain === $domain && $current_type === $zoneType) {
+                return $record;
             }
         }
     }
@@ -121,7 +134,7 @@ class CpanelDnsUpdater
         return $table_bruta->cpanelresult->data[0]->serialnum;
     }
 
-    private function change_dns_ip($subdomain, $real_ip, $line, $serial_number, $ip_v6 = false)
+    private function change_dns_ip($subdomain, $real_ip, $line, $serial_number, $zoneType = "A")
     {
         $response = $this->cpanel->execute_action(2, 'ZoneEdit', 'edit_zone_record', $this->config->user,
             array(
@@ -129,7 +142,7 @@ class CpanelDnsUpdater
             'class' => "IN",
             'line' => $line,
             'ttl' => "14400",
-            'type' => $ip_v6 ? 'AAAA' : 'A',
+            'type' => $zoneType,
             'domain' => $this->config->domain,
             'address' => $real_ip,
             "serialnum" => (string) $serial_number));
