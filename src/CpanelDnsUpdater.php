@@ -29,6 +29,7 @@ class CpanelDnsUpdater
             "password" => $this->config->password,
             "auth_type" => "password",
         ]);
+        $this->cpanel->setConnectionTimeout($this->config->connection_timeout);
 
         $adapter = new File(_CACHE_DIR);
         $adapter->setOption('ttl', $this->config->cache_ttl);

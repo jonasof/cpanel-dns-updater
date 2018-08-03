@@ -30,6 +30,9 @@ return [
     // app language
     "language" => "EN",
 
+    // http connection timeout
+    "connection_timeout" => 2,
+
     "modes" => [
         //Enalbe IPv4 A registers
         "ipv4" => true,
