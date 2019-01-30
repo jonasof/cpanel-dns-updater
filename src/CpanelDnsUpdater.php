@@ -38,8 +38,6 @@ class CpanelDnsUpdater
 
     public function update_domains()
     {
-        $table_bruta = $this->get_table_of_json();
-
         foreach (['ipv4', 'ipv6'] as $ip_type) {
             $zoneType = $ip_type === 'ipv6' ? 'AAAA' : 'A';
 
@@ -59,6 +57,8 @@ class CpanelDnsUpdater
             }
 
             foreach ($this->config->subdomains_to_update as $subdomain) {
+                $table_bruta = $this->get_table_of_json();
+
                 $subdomain .= ".";
 
                 $json_table = $this->get_table_filtrada($table_bruta);
