@@ -2,7 +2,7 @@
 
 namespace JonasOF\CpanelDnsUpdater;
 
-class CpanelDnsUpdaterLogger
+class Logger
 {
     static function log($INFO)
     {
