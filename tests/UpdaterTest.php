@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use JonasOF\CpanelDnsUpdater\CpanelDnsUpdater;
 
-class CpanelDnsUpdaterTest extends TestCase
+class UpdaterTest extends TestCase
 {
     public $cpanelDnsUpdater;
 
@@ -21,7 +21,7 @@ class CpanelDnsUpdaterTest extends TestCase
             ->shouldReceive('get_table_of_json')
             ->andReturn(json_decode($this->mockedReturn));
 
-        $cpanelDnsUpdater->update_domains;
+        $cpanelDnsUpdater->update_domains();
     }
 
     protected $mockedReturn = '';
