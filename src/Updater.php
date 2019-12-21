@@ -37,7 +37,7 @@ class Updater
         $this->execute_with_cached_ip($ip_type, function ($real_ip) use ($zoneType) {
             foreach ($this->config->subdomains_to_update as $subdomain) {
                 try {
-                    $this->update_domain(new Subdomain([
+                    $this->update_domain(new Domain([
                         "subdomain" => $subdomain . ".",
                         "real_ip" => $real_ip,
                         "zoneType" => $zoneType,
@@ -58,7 +58,7 @@ class Updater
         }
 
         if ($real_ip == $this->cache->get($this->ip_type)) {
-            $this->logger->log($this->messages["CACHE_EQUAL_REMOTE_MESSAGE"]);
+            $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
 
             return;
         }
@@ -70,19 +70,19 @@ class Updater
 
     private function update_domain(Domain $subdomain)
     {
-        $domain_info = $this->cpanel->find_zone_by_domain($subdomain);
+        $domain_info = $this->cpanel->get_domain_info($subdomain);
 
         if ($domain_info->address === $subdomain->real_ip) {
-            $this->logger->log($this->messages["REAL_EQUAL_DOMAIN_MESSAGE"]);
+            $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
             return;
         }
 
         $response = $this->cpanel->change_dns_ip($subdomain, $domain_info->line, $domain_info->serial_number);
 
         if (($response !== false) && !strpos($response, 'could not')) {
-            $this->logger->log($this->messages["DNS_IP_UPDATED_MESSAGE"] . $subdomain->real_ip);
+            $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE") . $subdomain->real_ip);
         } else {
-            $this->logger->log($this->messages["UNKNOW_UPDATE_ERROR_MESSAGE"]);
+            $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
         }
     }
 }

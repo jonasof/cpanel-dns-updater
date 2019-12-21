@@ -1,15 +1,26 @@
 <?php
 
-$container = (new DI\ContainerBuilder())->build();
+use Desarrolla2\Cache\Adapter\File;
+use Symfony\Component\Translation\Translator;
+use Symfony\Component\Translation\Loader\ArrayLoader;
+use Gufy\CpanelPhp\Cpanel;
+use Desarrolla2\Cache\Cache;
+use DI\ContainerBuilder;
+use JonasOF\CpanelDnsUpdater\IPGetter;
+use DI\Container;
+use JonasOF\CpanelDnsUpdater\HttpIPGetter;
 
-$config = (object) require ('config/config.php');
-$languages = require ('languages.php');
+/** @var Container $container */
+$container = (new ContainerBuilder())->useAnnotations(false)->build();
+
+$config = (object) require('config/config.php');
 
 $container->set('config', $config);
-$container->set('messages', $languages[$config->language]);
 
-$container->set(Gufy\CpanelPhp\Cpanel::class, buildCpanel($container));
-$container->set(Desarrolla2\Cache\Cache::class, buildCache($container));
+$container->set(Cpanel::class, buildCpanel($container));
+$container->set(Cache::class, buildCache($container));
+$container->set(Translator::class, buildCache($container));
+$container->set(IPGetter::class, \DI\create(HttpIPGetter::class));
 
 function buildCpanel($container) {
     $config = $container->get('config');
@@ -33,6 +44,17 @@ function buildCache($container) {
     $adapter->setOption('ttl', $config->cache_ttl);
 
     return new Cache($adapter);
+}
+
+function buildLanguages($container) {
+    $languages = require('languages.php');
+
+    $translator = new Translator($container->get('config')->language);
+    $translator->addLoader('array', new ArrayLoader());
+    $translator->addResource('array', $languages['EN'], 'en_US');
+    $translator->addResource('array', $languages['PT_BR'], 'pt_BR');
+
+    return $translator;
 }
 
 return $container;

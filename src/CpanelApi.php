@@ -2,13 +2,15 @@
 
 namespace JonasOF\CpanelDnsUpdater;
 
+use Exception;
 use Gufy\CpanelPhp\Cpanel;
 use JonasOF\CpanelDnsUpdater\Exceptions\ZoneNotFound;
 use JonasOF\CpanelDnsUpdater\Logger;
+use Symfony\Component\Translation\Translator;
 
 class CpanelApi
 {
-    /** @var CpanelApi $cpanel */
+    /** @var Cpanel $cpanel */
     private $cpanel;
     private $config;
     private $messages;
@@ -16,7 +18,7 @@ class CpanelApi
 
     const API_VERSION = 2;
 
-    function __construct($config, $messages, Cpanel $cpanel, Logger $logger)
+    function __construct($config, Translator $messages, Cpanel $cpanel, Logger $logger)
     {
         $this->config = $config;
         $this->messages = $messages;
@@ -31,7 +33,7 @@ class CpanelApi
         $domain_info = $this->find_zone_by_domain($subdomain, $zones->record);
 
         if (is_null($domain_info)) {
-            $this->logger->log($this->messages["ZONE_NOT_FOUND"] . ": $subdomain $subdomain->zoneType");
+            $this->logger->log($this->messages->trans("ZONE_NOT_FOUND") . ": $subdomain $subdomain->zoneType");
             throw new ZoneNotFound();
         }
 
@@ -79,12 +81,12 @@ class CpanelApi
         );
 
         if ($response === false || strpos($response, 'could not') !== false) {
-            throw new Exception($this->messages['CANNOT_CONNECT_CPANEL']);
+            throw new Exception($this->messages->trans('CANNOT_CONNECT_CPANEL'));
         }
 
         $resp = json_decode($response);
         if (is_null($resp) || !isset($resp->cpanelresult->data[0])) {
-            throw new Exception($this->messages['CANNOT_CONNECT_CPANEL']);
+            throw new Exception($this->messages->trans('CANNOT_CONNECT_CPANEL'));
         }
 
         return $resp->cpanelresult->data[0];

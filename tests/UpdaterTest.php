@@ -1,25 +1,31 @@
 <?php
 
+namespace Tests;
+
+use Desarrolla2\Cache\Adapter\NotCache;
+use Desarrolla2\Cache\Cache;
+use JonasOF\CpanelDnsUpdater\CpanelApi;
+use JonasOF\CpanelDnsUpdater\Logger;
+use JonasOF\CpanelDnsUpdater\Updater;
 use PHPUnit\Framework\TestCase;
-use JonasOF\CpanelDnsUpdater\CpanelDnsUpdater;
+use Tests\Mocks\FakeIpGetter;
 
 class UpdaterTest extends TestCase
 {
-    public $cpanelDnsUpdater;
-
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $this->cpanelDnsUpdater = mock(CpanelDnsUpdater::class);
-    }
-
     public function testChangeDnsIpReturnsFalseIfResponseStatusIs0()
     {
-        $cpanelDnsUpdater = mock(CpanelDnsUpdater::class)
-            ->makePartial()
-            ->shouldReceive('get_table_of_json')
-            ->andReturn(json_decode($this->mockedReturn));
+        /** @var CpanelApi $api */
+        $api = $this->createMock(CpanelApi::class)
+            ->method('get_domain_info')
+            ->willReturn(json_decode($this->mockedReturn));
+        
+        $cache = new Cache(new NotCache());
+
+        $getter = new FakeIpGetter();
+
+        $logger = new Logger();
+            
+        $updater = new Updater([], [], $api, $cache, $getter, $logger);
 
         $cpanelDnsUpdater->update_domains();
     }
