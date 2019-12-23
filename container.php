@@ -7,54 +7,66 @@ use Gufy\CpanelPhp\Cpanel;
 use Desarrolla2\Cache\Cache;
 use DI\ContainerBuilder;
 use JonasOF\CpanelDnsUpdater\IPGetter;
-use DI\Container;
+use JonasOF\CpanelDnsUpdater\Config;
 use JonasOF\CpanelDnsUpdater\HttpIPGetter;
+use Psr\Container\ContainerInterface;
 
-/** @var Container $container */
-$container = (new ContainerBuilder())->useAnnotations(false)->build();
+$buildConfig = function () {
+    $config = (object) include 'config/config.php';
 
-$config = (object) require('config/config.php');
+    return new Config($config);
+};
 
-$container->set('config', $config);
-
-$container->set(Cpanel::class, buildCpanel($container));
-$container->set(Cache::class, buildCache($container));
-$container->set(Translator::class, buildCache($container));
-$container->set(IPGetter::class, \DI\create(HttpIPGetter::class));
-
-function buildCpanel($container) {
-    $config = $container->get('config');
-
-    $cpanel = new Gufy\CpanelPhp\Cpanel([
-        "host" => $config->url,
-        "username" => $config->user,
-        "password" => $config->password,
+$buildCpanel = function (ContainerInterface $c) {
+    $config = $c->get(Config::class);
+    
+    $cpanel = new Gufy\CpanelPhp\Cpanel(
+        [
+        "host" => $config->get('url'),
+        "username" => $config->get('user'),
+        "password" => $config->get('password'),
         "auth_type" => "password",
-    ]);
+        ]
+    );
 
-    $cpanel->setConnectionTimeout($config->connection_timeout);
+    $cpanel->setConnectionTimeout($config->get('connection_timeout'));
 
     return $cpanel;
-}
+};
 
-function buildCache($container) {
-    $config = $container->get('config');
+$buildCache = function (ContainerInterface $c) {
+    $config = $c->get(Config::class);
 
     $adapter = new File(_CACHE_DIR);
-    $adapter->setOption('ttl', $config->cache_ttl);
+    $adapter->setOption('ttl', $config->get('cache_ttl'));
 
     return new Cache($adapter);
-}
+};
 
-function buildLanguages($container) {
-    $languages = require('languages.php');
+$buildLanguages = function (ContainerInterface $c) {
+    $config = $c->get(Config::class);
+    
+    $languages = include 'languages.php';
 
-    $translator = new Translator($container->get('config')->language);
+    $translator = new Translator($config->get('language'));
     $translator->addLoader('array', new ArrayLoader());
     $translator->addResource('array', $languages['EN'], 'en_US');
     $translator->addResource('array', $languages['PT_BR'], 'pt_BR');
 
     return $translator;
-}
+};
 
-return $container;
+$containerBuilder = new ContainerBuilder();
+$containerBuilder->useAnnotations(false);
+$containerBuilder->addDefinitions(
+    [
+    Config::class => \DI\factory($buildConfig),
+    Cpanel::class => \DI\factory($buildCpanel),
+    Cache::class => \DI\factory($buildCache),
+    Translator::class => \DI\factory($buildLanguages),
+    IPGetter::class => \DI\autowire(HttpIPGetter::class),
+    ]
+);
+
+
+return $containerBuilder->build();

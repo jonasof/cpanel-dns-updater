@@ -1,6 +1,6 @@
 <?php
 
-Namespace JonasOF\CpanelDnsUpdater;
+namespace JonasOF\CpanelDnsUpdater;
 
 use Exception;
 use JonasOF\CpanelDnsUpdater\Updater;
@@ -15,21 +15,21 @@ class UpdaterAllTypes
 
     const API_VERSION = 2;
 
-    function __construct($config, Updater $updater)
+    public function __construct(Config $config, Updater $updater)
     {
         $this->config = $config;
         $this->updater = $updater;
     }
 
-    public function update_domains()
+    public function updateDomains()
     {
         foreach (['ipv4', 'ipv6'] as $ip_type) {
-            if (!$this->config->modes[$ip_type]) {
+            if (!$this->config->get('modes')[$ip_type]) {
                 continue;
             }
 
             try {
-                $this->updater->update_domains($ip_type);
+                $this->updater->updateDomains($ip_type);
             } catch (Exception $e) {
                 continue;
             }

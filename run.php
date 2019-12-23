@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:ignoreFile
+
 chdir(__DIR__);
 
 if (! is_file("config/config.php")) {
@@ -12,17 +14,19 @@ if (! is_file("vendor/autoload.php")) {
     exit();
 }
 
-foreach (["cache", "log"] as $dir)
-    if (! is_dir($dir))
+foreach (["cache", "log"] as $dir) {
+    if (! is_dir($dir)) {
         mkdir($dir);
+    }
+}
 
-require_once ('vendor/autoload.php');
+require_once 'vendor/autoload.php';
 
-define ("_CACHE_DIR", __DIR__ . "/cache");
-define ("_LOG_DIR", __DIR__ . "/log");
-define ("_VERBOSE", true);
+define("_CACHE_DIR", __DIR__ . "/cache");
+define("_LOG_DIR", __DIR__ . "/log");
+define("_VERBOSE", true);
 
-$container = require("container.php");
+$container = require "container.php";
 
 $updater = $container->get(JonasOF\CpanelDnsUpdater\UpdaterAllTypes::class);
-$updater->update_domains();
+$updater->updateDomains();

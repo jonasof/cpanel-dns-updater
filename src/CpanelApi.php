@@ -10,7 +10,9 @@ use Symfony\Component\Translation\Translator;
 
 class CpanelApi
 {
-    /** @var Cpanel $cpanel */
+    /**
+     * @var Cpanel $cpanel
+     */
     private $cpanel;
     private $config;
     private $messages;
@@ -18,7 +20,7 @@ class CpanelApi
 
     const API_VERSION = 2;
 
-    function __construct($config, Translator $messages, Cpanel $cpanel, Logger $logger)
+    public function __construct(Config $config, Translator $messages, Cpanel $cpanel, Logger $logger)
     {
         $this->config = $config;
         $this->messages = $messages;
@@ -26,11 +28,11 @@ class CpanelApi
         $this->logger = $logger;
     }
 
-    public function get_domain_info(Domain $subdomain)
+    public function getDomainInfo(Models\Domain $subdomain)
     {
-        $zones = $this->get_all_zones();
+        $zones = $this->getAllZones();
 
-        $domain_info = $this->find_zone_by_domain($subdomain, $zones->record);
+        $domain_info = $this->findZoneByDomain($subdomain, $zones->record);
 
         if (is_null($domain_info)) {
             $this->logger->log($this->messages->trans("ZONE_NOT_FOUND") . ": $subdomain $subdomain->zoneType");
@@ -42,7 +44,7 @@ class CpanelApi
         return $domain_info;
     }
 
-    public function change_dns_ip(Domain $subdomain, $line, $serial_number)
+    public function changeDnsIp(Models\Domain $subdomain, $line, $serial_number)
     {
         $payload = [
             'name' => $subdomain->subdomain,
@@ -50,18 +52,18 @@ class CpanelApi
             'line' => $line,
             'ttl' => "14400",
             'type' => $subdomain->zoneType,
-            'domain' => $this->config->domain,
+            'domain' => $this->config->get('domain'),
             'address' => $subdomain->real_ip,
             "serialnum" => (string) $serial_number
         ];
 
-        return $this->cpanel->execute_action(
+        /*return $this->cpanel->execute_action(
             self::API_VERSION,
             'ZoneEdit',
             'edit_zone_record',
-            $this->config->user,
+            $this->config->get('user'),
             $payload
-        );
+        );*/
     }
 
     /**
@@ -70,14 +72,14 @@ class CpanelApi
      *
      * @return string @see /docs/sampleCpanelZonesResponse.json
      */
-    private function get_all_zones()
+    private function getAllZones()
     {
         $response = $this->cpanel->execute_action(
             self::API_VERSION,
             "ZoneEdit",
             "fetchzone",
-            $this->config->user,
-            ['domain' => $this->config->domain]
+            $this->config->get('user'),
+            ['domain' => $this->config->get('domain')]
         );
 
         if ($response === false || strpos($response, 'could not') !== false) {
@@ -92,10 +94,13 @@ class CpanelApi
         return $resp->cpanelresult->data[0];
     }
 
-    private function find_zone_by_domain(Domain $domain, $zone_records)
+    private function findZoneByDomain(Models\Domain $domain, $zone_records)
     {
         foreach ($zone_records as $record) {
-            if ($record->name === $domain->subdomain && $record->type === $domain->zoneType) {
+            $current_domain = $record->name ?? null;
+            $current_type = $record->type ?? null;
+
+            if ($current_domain === $domain->subdomain && $current_type === $domain->zoneType) {
                 return $record;
             }
         }

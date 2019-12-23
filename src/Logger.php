@@ -4,10 +4,11 @@ namespace JonasOF\CpanelDnsUpdater;
 
 class Logger
 {
-    function log($INFO)
+    public function log($INFO)
     {
         file_put_contents(_LOG_DIR . "/log", date("Y-m-d H:i") . " - " . $INFO . "\n", FILE_APPEND);
-        if (_VERBOSE)
+        if (_VERBOSE) {
             echo $INFO;
+        }
     }
 }

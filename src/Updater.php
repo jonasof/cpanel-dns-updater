@@ -1,12 +1,13 @@
 <?php
 
-Namespace JonasOF\CpanelDnsUpdater;
+namespace JonasOF\CpanelDnsUpdater;
 
 use Desarrolla2\Cache\Cache;
 
 use JonasOF\CpanelDnsUpdater\CpanelApi;
 use JonasOF\CpanelDnsUpdater\Exceptions\ZoneNotFound;
 use JonasOF\CpanelDnsUpdater\Logger;
+use Symfony\Component\Translation\Translator;
 
 /**
  * @copyright JonasOF 2014, 2015, 2018, 2019 (MIT License)
@@ -20,8 +21,14 @@ class Updater
     private $ip_getter;
     private $logger;
 
-    function __construct($config, $messages, CpanelApi $cpanel, Cache $cache, IPGetter $ip_getter, Logger $logger)
-    {
+    public function __construct(
+        Config $config,
+        Translator $messages,
+        CpanelApi $cpanel,
+        Cache $cache,
+        IPGetter $ip_getter,
+        Logger $logger
+    ) {
         $this->config = $config;
         $this->messages = $messages;
         $this->cpanel = $cpanel;
@@ -30,34 +37,42 @@ class Updater
         $this->logger = $logger;
     }
 
-    public function update_domains($ip_type)
+    public function updateDomains($ip_type)
     {
         $zoneType = $ip_type === 'ipv6' ? 'AAAA' : 'A';
 
-        $this->execute_with_cached_ip($ip_type, function ($real_ip) use ($zoneType) {
-            foreach ($this->config->subdomains_to_update as $subdomain) {
-                try {
-                    $this->update_domain(new Domain([
-                        "subdomain" => $subdomain . ".",
-                        "real_ip" => $real_ip,
-                        "zoneType" => $zoneType,
-                    ]));
-                } catch(ZoneNotFound $e) {
-                    continue;
+        $this->executeWithCachedIp(
+            $ip_type,
+            function ($real_ip) use ($zoneType) {
+                foreach ($this->config->get('subdomains_to_update') as $subdomain) {
+                    try {
+                        $this->updateDomain(
+                            new Models\Domain(
+                                [
+                                "subdomain" => $subdomain . ".",
+                                "real_ip" => $real_ip,
+                                "zoneType" => $zoneType,
+                                ]
+                            )
+                        );
+                    } catch (ZoneNotFound $e) {
+                        continue;
+                    }
                 }
             }
-        });
+        );
     }
 
-    private function execute_with_cached_ip($ip_type, callable $callback) {
-        $real_ip = $this->ip_getter->get_my_remote_ip($ip_type);
+    private function executeWithCachedIp($ip_type, callable $callback)
+    {
+        $real_ip = $this->ip_getter->getMyRemoteIp($ip_type);
 
-        if (!$this->config->use_ip_cache) {
+        if (!$this->config->get('use_ip_cache')) {
             $callback($real_ip);
             return;
         }
 
-        if ($real_ip == $this->cache->get($this->ip_type)) {
+        if ($real_ip == $this->cache->get($ip_type)) {
             $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
 
             return;
@@ -68,21 +83,23 @@ class Updater
         $this->cache->set($ip_type, $real_ip);
     }
 
-    private function update_domain(Domain $subdomain)
+    private function updateDomain(Models\Domain $subdomain)
     {
-        $domain_info = $this->cpanel->get_domain_info($subdomain);
+        // $domain_info = $this->cpanel->getDomainInfo($subdomain);
 
-        if ($domain_info->address === $subdomain->real_ip) {
-            $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
-            return;
-        }
+        // if ($domain_info->address === $subdomain->real_ip) {
+        //     $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
+        //     return;
+        // }
 
-        $response = $this->cpanel->change_dns_ip($subdomain, $domain_info->line, $domain_info->serial_number);
+        // $response = $this->cpanel->changeDnsIp($subdomain, $domain_info->line, $domain_info->serial_number);
+
+        $response = $this->cpanel->changeDnsIp($subdomain, "oi", "tcahu");
 
         if (($response !== false) && !strpos($response, 'could not')) {
-            $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE") . $subdomain->real_ip);
+            $this->logger->log($this->messages->trans("DNS_IP_UPDATED_MESSAGE") . $subdomain->real_ip);
         } else {
-            $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
+            $this->logger->log($this->messages->trans("UNKNOW_UPDATE_ERROR_MESSAGE"));
         }
     }
 }
