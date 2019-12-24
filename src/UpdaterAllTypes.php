@@ -2,24 +2,24 @@
 
 namespace JonasOF\CpanelDnsUpdater;
 
-use Exception;
+use JonasOF\CpanelDnsUpdater\Exceptions\CpanelApiException;
 use JonasOF\CpanelDnsUpdater\Models\IPTypes;
 use JonasOF\CpanelDnsUpdater\Updater;
 
-/**
- * @copyright JonasOF 2014, 2015, 2018, 2019 (MIT License)
- */
 class UpdaterAllTypes
 {
     private $config;
     private $updater;
+    private $ip_getter;
 
-    const API_VERSION = 2;
-
-    public function __construct(Config $config, Updater $updater)
-    {
+    public function __construct(
+        Config $config,
+        Updater $updater,
+        IPGetter $ip_getter
+    ) {
         $this->config = $config;
         $this->updater = $updater;
+        $this->ip_getter = $ip_getter;
     }
 
     public function updateDomains()
@@ -30,10 +30,17 @@ class UpdaterAllTypes
             }
 
             try {
-                $this->updater->updateDomains($ip_type);
-            } catch (Exception $e) {
+                $new_ip = $this->ip_getter->getMyRemoteIp($ip_type);
+            } catch (CpanelApiException $e) {
+                $this->logger->error($this->messages->trans($e->getMessage()), [
+                    "ip_type" => $ip_type,
+                    "response" => $e->response,
+                ]);
+
                 continue;
             }
+
+            $this->updater->updateDomains($new_ip, $this->config->get('subdomains_to_update'));
         }
     }
 }

@@ -3,32 +3,27 @@
 namespace JonasOF\CpanelDnsUpdater;
 
 use JonasOF\CpanelDnsUpdater\IPGetter;
-use Exception;
-use Symfony\Component\Translation\Translator;
 use JonasOF\CpanelDnsUpdater\Config;
-use Monolog\Logger;
+use JonasOF\CpanelDnsUpdater\Exceptions\CpanelApiException;
+use JonasOF\CpanelDnsUpdater\Models\IP;
 
 class HttpIPGetter implements IPGetter
 {
-    public function __construct(Config $config, Translator $messages, Logger $logger)
+    public function __construct(Config $config)
     {
         $this->config = $config;
-        $this->messages = $messages;
-        $this->logger = $logger;
     }
 
-    public function getMyRemoteIp(string $ip_type): string
+    public function getMyRemoteIp(string $ip_type): IP
     {
         $getter = $this->config->get('modes')[$ip_type . "_getter"];
 
         $remote_ip = trim(file_get_contents($getter));
 
-        if (($remote_ip === false) || (!filter_var($remote_ip, FILTER_VALIDATE_IP))) {
-            $this->logger->error($this->messages->trans("RETRIVE_ERROR_MESSAGE"));
-
-            throw new Exception($this->messages->trans("RETRIVE_ERROR_MESSAGE"));
+        if (filter_var($remote_ip, FILTER_VALIDATE_IP) === false) {
+            throw new CpanelApiException("RETRIVE_ERROR_MESSAGE", $remote_ip);
         }
 
-        return $remote_ip;
+        return new IP($ip_type, $remote_ip);
     }
 }

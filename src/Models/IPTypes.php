@@ -2,6 +2,8 @@
 
 namespace JonasOF\CpanelDnsUpdater\Models;
 
+use Exception;
+
 class IPTypes
 {
     const IPV4 = "ipv4";
@@ -20,7 +22,7 @@ class IPTypes
     public static function getDNSTypeFromIpType(string $ip_type): string
     {
         if (!in_array($ip_type, self::getIpTypes())) {
-            throw new \Exception("Invalid IP Type $ip_type");
+            throw new Exception("Invalid IP Type $ip_type");
         }
 
         return self::DNS_TYPE_MAPPER[$ip_type];

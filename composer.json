@@ -1,6 +1,6 @@
 {
     "require": {
-        "php": ">=7.0",
+        "php": ">=7.2",
         "gufy/cpanel-php": "1.0.*",
         "desarrolla2/cache": "^2.1",
         "monolog/monolog": "^2.0",

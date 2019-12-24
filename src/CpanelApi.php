@@ -2,9 +2,8 @@
 
 namespace JonasOF\CpanelDnsUpdater;
 
-use Exception;
 use Gufy\CpanelPhp\Cpanel;
-use JonasOF\CpanelDnsUpdater\Exceptions\ZoneNotFound;
+use JonasOF\CpanelDnsUpdater\Exceptions\CpanelApiException;
 use Monolog\Logger;
 use Symfony\Component\Translation\Translator;
 
@@ -18,6 +17,8 @@ class CpanelApi
     private $messages;
     private $logger;
 
+    private $serial_number;
+
     const API_VERSION = 2;
 
     public function __construct(Config $config, Translator $messages, Cpanel $cpanel, Logger $logger)
@@ -28,52 +29,32 @@ class CpanelApi
         $this->logger = $logger;
     }
 
-    public function getDomainInfo(Models\Domain $subdomain): object
+    public function getDomainInfo(Models\SubdomainChange $domain): ?object
     {
-        $zones = $this->getAllZones();
+        $zones = $this->getAllZonesCached();
 
-        $domain_info = $this->findZoneByDomain($subdomain, $zones->record);
+        foreach ($zones->record as $record) {
+            $current_domain = $record->name ?? null;
+            $current_type = $record->type ?? null;
 
-        if (is_null($domain_info)) {
-            $this->logger->error($this->messages->trans("ZONE_NOT_FOUND"), [
-                "subdomain" => $subdomain->subdomain,
-                "type" => $subdomain->zoneType,
-            ]);
-
-            throw new ZoneNotFound();
+            if ($current_domain === $domain->subdomain && $current_type === $domain->getDNSType()) {
+                return $record;
+            }
         }
 
-        $domain_info->serial_number = (int) $zones->serialnum;
-
-        return $domain_info;
+        return null;
     }
 
-    public function changeDnsIp(Models\Domain $subdomain, $line, $serial_number)
+    private function getAllZonesCached()
     {
-        $payload = [
-            'name' => $subdomain->subdomain,
-            'class' => "IN",
-            'line' => $line,
-            'ttl' => "14400",
-            'type' => $subdomain->zoneType,
-            'domain' => $this->config->get('domain'),
-            'address' => $subdomain->real_ip,
-            "serialnum" => (string) $serial_number
-        ];
+        if (!$this->zones) {
+            $this->zones = $this->getAllZones();
+        }
 
-        return $this->cpanel->execute_action(
-            self::API_VERSION,
-            'ZoneEdit',
-            'edit_zone_record',
-            $this->config->get('user'),
-            $payload
-        );
+        return $this->zones;
     }
 
     /**
-     * @Warning this function needs to be called every time before a update.
-     * It cannot be cached because of volatile serial_number and line parameters
-     *
      * @return string @see /docs/sampleCpanelZonesResponse.json
      */
     private function getAllZones()
@@ -85,28 +66,51 @@ class CpanelApi
             $this->config->get('user'),
             ['domain' => $this->config->get('domain')]
         );
+        
+        $zones = json_decode($response)->cpanelresult->data[0] ?? null;
 
-        if ($response === false || strpos($response, 'could not') !== false) {
-            throw new Exception($this->messages->trans('CANNOT_CONNECT_CPANEL'));
+        $isSuccessful = $zones->status ?? false;
+
+        if (!$isSuccessful) {
+            throw CpanelApiException::buildFromResponse('API_ERROR_WHILE_FETCHING_ZONES', $response);
         }
 
-        $resp = json_decode($response);
-        if (is_null($resp) || !isset($resp->cpanelresult->data[0])) {
-            throw new Exception($this->messages->trans('CANNOT_CONNECT_CPANEL'));
-        }
+        $this->serial_number = (int) $zones->serialnum;
 
-        return $resp->cpanelresult->data[0];
+        return $zones;
     }
 
-    private function findZoneByDomain(Models\Domain $domain, $zone_records)
+    public function changeDnsIp(Models\SubdomainChange $subdomain, object $domain_info)
     {
-        foreach ($zone_records as $record) {
-            $current_domain = $record->name ?? null;
-            $current_type = $record->type ?? null;
+        $payload = [
+            'name' => $subdomain->subdomain,
+            'class' => $domain_info->class,
+            'line' => $domain_info->line,
+            'ttl' => $domain_info->ttl,
+            'type' => $subdomain->getDNSType(),
+            'domain' => $this->config->get('domain'),
+            'address' => $subdomain->new_ip->value,
+            "serialnum" => (string) $this->serial_number
+        ];
 
-            if ($current_domain === $domain->subdomain && $current_type === $domain->zoneType) {
-                return $record;
-            }
+        $response = $this->cpanel->execute_action(
+            self::API_VERSION,
+            'ZoneEdit',
+            'edit_zone_record',
+            $this->config->get('user'),
+            $payload
+        );
+
+        $result = json_decode($response)->cpanelresult->data[0]->result ?? null;
+
+        $isSuccessful = $result->status ?? false;
+
+        if (!$isSuccessful) {
+            throw CpanelApiException::buildFromResponse('API_ERROR_WHILE_UPDATING_IP', $response);
         }
+
+        $this->serial_number = $result->newserial;
+
+        return $response;
     }
 }
