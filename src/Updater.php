@@ -6,7 +6,8 @@ use Desarrolla2\Cache\Cache;
 
 use JonasOF\CpanelDnsUpdater\CpanelApi;
 use JonasOF\CpanelDnsUpdater\Exceptions\ZoneNotFound;
-use JonasOF\CpanelDnsUpdater\Logger;
+use JonasOF\CpanelDnsUpdater\Models\IPTypes;
+use Monolog\Logger;
 use Symfony\Component\Translation\Translator;
 
 /**
@@ -39,8 +40,8 @@ class Updater
 
     public function updateDomains($ip_type)
     {
-        $zoneType = $ip_type === 'ipv6' ? 'AAAA' : 'A';
-
+        $zoneType = IPTypes::getDNSTypeFromIpType($ip_type);
+        
         $this->executeWithCachedIp(
             $ip_type,
             function ($real_ip) use ($zoneType) {
@@ -73,7 +74,7 @@ class Updater
         }
 
         if ($real_ip == $this->cache->get($ip_type)) {
-            $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
+            $this->logger->info($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
 
             return;
         }
@@ -85,21 +86,23 @@ class Updater
 
     private function updateDomain(Models\Domain $subdomain)
     {
-        // $domain_info = $this->cpanel->getDomainInfo($subdomain);
+        $domain_info = $this->cpanel->getDomainInfo($subdomain);
 
-        // if ($domain_info->address === $subdomain->real_ip) {
-        //     $this->logger->log($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
-        //     return;
-        // }
+        if (!$this->config->get('force_rewrite') && $domain_info->address === $subdomain->real_ip) {
+            $this->logger->info($this->messages->trans("REAL_EQUAL_DOMAIN_MESSAGE"));
+            return;
+        }
 
-        // $response = $this->cpanel->changeDnsIp($subdomain, $domain_info->line, $domain_info->serial_number);
-
-        $response = $this->cpanel->changeDnsIp($subdomain, "oi", "tcahu");
+        $response = $this->cpanel->changeDnsIp($subdomain, $domain_info->line, $domain_info->serial_number);
 
         if (($response !== false) && !strpos($response, 'could not')) {
-            $this->logger->log($this->messages->trans("DNS_IP_UPDATED_MESSAGE") . $subdomain->real_ip);
+            $this->logger->info($this->messages->trans("DNS_IP_UPDATED_MESSAGE"), [
+                "ip" => $subdomain->real_ip,
+            ]);
         } else {
-            $this->logger->log($this->messages->trans("UNKNOW_UPDATE_ERROR_MESSAGE"));
+            $this->logger->error($this->messages->trans("UNKNOW_UPDATE_ERROR_MESSAGE"), [
+                "response" => $response,
+            ]);
         }
     }
 }

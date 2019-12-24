@@ -5,7 +5,7 @@ namespace JonasOF\CpanelDnsUpdater;
 use Exception;
 use Gufy\CpanelPhp\Cpanel;
 use JonasOF\CpanelDnsUpdater\Exceptions\ZoneNotFound;
-use JonasOF\CpanelDnsUpdater\Logger;
+use Monolog\Logger;
 use Symfony\Component\Translation\Translator;
 
 class CpanelApi
@@ -28,14 +28,18 @@ class CpanelApi
         $this->logger = $logger;
     }
 
-    public function getDomainInfo(Models\Domain $subdomain)
+    public function getDomainInfo(Models\Domain $subdomain): object
     {
         $zones = $this->getAllZones();
 
         $domain_info = $this->findZoneByDomain($subdomain, $zones->record);
 
         if (is_null($domain_info)) {
-            $this->logger->log($this->messages->trans("ZONE_NOT_FOUND") . ": $subdomain $subdomain->zoneType");
+            $this->logger->error($this->messages->trans("ZONE_NOT_FOUND"), [
+                "subdomain" => $subdomain->subdomain,
+                "type" => $subdomain->zoneType,
+            ]);
+
             throw new ZoneNotFound();
         }
 
@@ -57,18 +61,18 @@ class CpanelApi
             "serialnum" => (string) $serial_number
         ];
 
-        /*return $this->cpanel->execute_action(
+        return $this->cpanel->execute_action(
             self::API_VERSION,
             'ZoneEdit',
             'edit_zone_record',
             $this->config->get('user'),
             $payload
-        );*/
+        );
     }
 
     /**
-     * @Warning this function needs to be called every time before a update
-     * (cannot be cached)
+     * @Warning this function needs to be called every time before a update.
+     * It cannot be cached because of volatile serial_number and line parameters
      *
      * @return string @see /docs/sampleCpanelZonesResponse.json
      */

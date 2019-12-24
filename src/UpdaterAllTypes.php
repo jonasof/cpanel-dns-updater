@@ -3,6 +3,7 @@
 namespace JonasOF\CpanelDnsUpdater;
 
 use Exception;
+use JonasOF\CpanelDnsUpdater\Models\IPTypes;
 use JonasOF\CpanelDnsUpdater\Updater;
 
 /**
@@ -23,7 +24,7 @@ class UpdaterAllTypes
 
     public function updateDomains()
     {
-        foreach (['ipv4', 'ipv6'] as $ip_type) {
+        foreach (IPTypes::getIpTypes() as $ip_type) {
             if (!$this->config->get('modes')[$ip_type]) {
                 continue;
             }

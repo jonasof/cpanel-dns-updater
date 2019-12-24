@@ -10,11 +10,14 @@ use JonasOF\CpanelDnsUpdater\IPGetter;
 use JonasOF\CpanelDnsUpdater\Config;
 use JonasOF\CpanelDnsUpdater\HttpIPGetter;
 use Psr\Container\ContainerInterface;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
 $buildConfig = function () {
-    $config = (object) include 'config/config.php';
+    $config = require 'config/config.php';
+    $defaults = require 'config/config.default.php';
 
-    return new Config($config);
+    return new Config($config, $defaults);
 };
 
 $buildCpanel = function (ContainerInterface $c) {
@@ -37,7 +40,7 @@ $buildCpanel = function (ContainerInterface $c) {
 $buildCache = function (ContainerInterface $c) {
     $config = $c->get(Config::class);
 
-    $adapter = new File(_CACHE_DIR);
+    $adapter = new File($config->get('cache_dir'));
     $adapter->setOption('ttl', $config->get('cache_ttl'));
 
     return new Cache($adapter);
@@ -56,17 +59,31 @@ $buildLanguages = function (ContainerInterface $c) {
     return $translator;
 };
 
+$buildLogger = function (ContainerInterface $c) {
+    $config = $c->get(Config::class);
+    
+    $log = new Logger('cpaneldnsupdater');
+    $log->pushHandler(new StreamHandler($config->get('log_file'), Logger::INFO));
+    
+    if ($config->get('print_errors')) {
+        $log->pushHandler(new StreamHandler("php://stdout", Logger::INFO));
+    }
+
+    return $log;
+};
+
+
 $containerBuilder = new ContainerBuilder();
 $containerBuilder->useAnnotations(false);
 $containerBuilder->addDefinitions(
     [
-    Config::class => \DI\factory($buildConfig),
-    Cpanel::class => \DI\factory($buildCpanel),
-    Cache::class => \DI\factory($buildCache),
-    Translator::class => \DI\factory($buildLanguages),
-    IPGetter::class => \DI\autowire(HttpIPGetter::class),
+        Config::class => \DI\factory($buildConfig),
+        Cpanel::class => \DI\factory($buildCpanel),
+        Cache::class => \DI\factory($buildCache),
+        Translator::class => \DI\factory($buildLanguages),
+        IPGetter::class => \DI\autowire(HttpIPGetter::class),
+        Logger::class => \DI\factory($buildLogger),
     ]
 );
-
 
 return $containerBuilder->build();
