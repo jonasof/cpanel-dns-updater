@@ -26,7 +26,7 @@ Editor).
 
 Pass 2: clone/download this repository.
 
-Pass 3: install dependencies with composer (composer install)
+Pass 3: install dependencies with composer (composer install --no-dev)
 
 Pass 4: put the files in any desidered folder. I recommend 
 /opt/cpanel-dns-updater. If you want, you can put it in a web folder and run 

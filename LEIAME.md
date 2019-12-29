@@ -23,7 +23,7 @@ Passo 1: crie um subdomínio no cPanel tipo A com o seu ip atual (DNS Zone Edito
 
 Passo 2: clone o repositório ou baixe ao lado.
 
-Passo 3: instale as dependências com composer (composer install)
+Passo 3: instale as dependências com composer (composer install --no-dev)
 
 Passo 4: coloque os arquivos em qualquer pasta desejada. Recomendo 
 /opt/cpanel-dns-updater. Você também pode colocar numa pasta web e executar 

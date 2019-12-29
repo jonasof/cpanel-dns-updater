@@ -39,7 +39,7 @@ return [
     "connection_timeout" => 10,
 
     // log directory
-    "log_dir" => __DIR__ . "/../log",
+    "log_file" => __DIR__ . "/../log/log",
 
     // print errors
     "print_errors" => false,
