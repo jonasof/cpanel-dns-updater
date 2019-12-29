@@ -3,22 +3,20 @@ CPANEL DNS UPDATER
 
 [Descrição em português](LEIAME.md)
 
-This scripts update the IP of the client subdomain with a server running cPanel (like no-ip)
+This scripts updates the IP of the client subdomain with a server running cPanel. So 
+you can use your cPanel site to provide a replacement to a dynamic dns service like "noip.com". 
 
 Example: imagine that you own one website with cPanel, in the domain 
 <mydomain.com>, and you want to point one subdomain to some network like your 
-home <home.mydomain.com>
-
-If this network uses static IP, you need just create an subdomain in "Simple 
-DNS zone Editor" type A. But if this point is dynamic IP, you need one script to
-update this value periodically, and this script do this.
-
-This script can be a good replacement to the service noip.com
+home <home.mydomain.com>. If this network uses a static IP, you can create 
+an subdomain in "Simple DNS zone Editor" type A and just set that IP there. 
+But if your network uses dynamic IP, you need one script to update that value
+periodically, and this script do this.
 
 Requirements
 --------
 
-PHP >= 5.4 (maybe works in 5.3)
+PHP >= 7.0
 
 How to use
 ---------
@@ -28,14 +26,14 @@ Editor).
 
 Pass 2: clone/download this repository.
 
-Pass 3: install dependencies with composer (composer install)
+Pass 3: install dependencies with composer (composer install --no-dev)
 
 Pass 4: put the files in any desidered folder. I recommend 
 /opt/cpanel-dns-updater. If you want, you can put it in a web folder and run 
 run.php.
 
 Pass 5: create the file config/config.php. Insert the data required in 
-config/config.sample.php
+config/config.default.php
 
 Pass 6: configure an cron to run.php (asset run with the same owner of folder). 
 Exemple:
@@ -45,24 +43,25 @@ Exemple:
 Libraries
 -----------
 This script uses the API "cpanel-php" <https://github.com/mgufrone/cpanel-php/tree/master> 
-from mgufrone.
+from mgufrone, and other famous php libraries to provide cache, log, translation and testing tools.
+Check composer.json for full details.
 
 
-History
+History and Motivation
 --------
 
-I created this script after the shutdown of no-ip service by Microsoft:
+I created this script after the shutdown of no-ip service by Microsoft in 2014:
 http://www.noip.com/blog/2014/07/10/microsoft-takedown-details-updates/
 
-I had an CPANEL site, so i have the idea to use it DNS Server. After some days 
-i created this script and i published one year after (before i dont known GIT).
+I had an CPANEL site, so i have the idea to use it as DNS Server. After some days 
+i created this script and published it one year after.
 
 License
 -------
 
 The MIT License (MIT)
 
-Copyright (c) 2014, 2015 JonasOF
+Copyright (c) 2014, 2015, 2018, 2019 (MIT License)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
