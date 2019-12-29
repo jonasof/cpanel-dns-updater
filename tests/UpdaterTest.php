@@ -5,23 +5,37 @@ namespace Tests;
 use Desarrolla2\Cache\Adapter\NotCache;
 use Desarrolla2\Cache\Cache;
 use Hamcrest\Matchers;
-use JonasOF\CpanelDnsUpdater\Config;
 use JonasOF\CpanelDnsUpdater\CpanelApi;
-use JonasOF\CpanelDnsUpdater\Models\IP;
 use JonasOF\CpanelDnsUpdater\Models\SubdomainChange;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use JonasOF\CpanelDnsUpdater\Updater;
 use Monolog\Logger;
 use Symfony\Component\Translation\Translator;
+use Tests\Factories\IPFactory;
+use Tests\Mocks\FakeCpanelApi;
+use Tests\Mocks\FakeCredentialsConfig;
+
+function createUpdater(CpanelApi $api = null) : Updater
+{
+    return new Updater(
+        new FakeCredentialsConfig(),
+        new Translator("en_US"),
+        $api ?? new FakeCpanelApi(),
+        new Cache(new NotCache()),
+        new Logger('test')
+    );
+}
 
 class CpanelUpdaterTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
-    private function getMockedDomainInfo()
+    public function testChangeDnsIpCallsCpanelApiWithCorrectArguments()
     {
-        return (object) [
+        $new_ip = IPFactory::build();
+
+        $domain_info = (object) [
             "name" => "domain1.site.com.",
             "type" => "A",
             "ttl" => "14400",
@@ -31,39 +45,19 @@ class CpanelUpdaterTest extends TestCase
             "class" => "IN",
             "record" => "0.0.0.0"
         ];
-    }
-
-    public function testChangeDnsIpCallsCpanelApiWithCorrectArguments()
-    {
-        $domain = new SubdomainChange([
-            'subdomain' => 'subdomain.test.com.',
-            'new_ip' => new IP('ipv4', '90.112.128.170')
-        ]);
-
-        $domain_info = $this->getMockedDomainInfo();
-
+    
         $api = Mockery::mock(CpanelApi::class)
             ->shouldReceive('getDomainInfo')
             ->andReturn($domain_info)
             ->shouldReceive('changeDnsIp')
             ->once()
-            ->with(Matchers::equalTo($domain), $domain_info);
+            ->with(Matchers::equalTo(new SubdomainChange([
+                'subdomain' => 'subdomain.test.com.',
+                'new_ip' => $new_ip
+            ])), $domain_info);
 
-        $cache = new Cache(new NotCache());
-        $logger = new Logger('test');
-        $config = new Config([
-            "url" => "https://mysite.com:2083",
-            "user" => "myuser",
-            "password" => "mypassword",
-            "domain" => "mysite.com",
-            'use_ip_cache' => false,
-            'subdomains_to_update' => ['subdomain.test.com']
-        ], require(__DIR__ . "/../config/config.default.php"));
+        $updater = createUpdater($api->getMock());
 
-        $translator = new Translator("en_US");
-
-        $updater = new Updater($config, $translator, $api->getMock(), $cache, $logger);
-
-        $updater->updateDomains(new IP("ipv4", "90.112.128.170"), ['subdomain.test.com']);
+        $updater->updateDomains($new_ip, ['subdomain.test.com']);
     }
 }

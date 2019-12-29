@@ -1,0 +1,19 @@
+{
+    "cpanelresult": {
+        "apiversion": 2,
+        "data": [
+            {
+                "result": {
+                    "statusmsg": "Bind reloading on domain using rndc zone: [myDomain.com]\\nBind reloading on domain using rndc zone: [myDomain.com]",
+                    "status": 1,
+                    "newserial": 2019122905
+                }
+            }
+        ],
+        "event": {
+            "result": 1
+        },
+        "func": "edit_zone_record",
+        "module": "ZoneEdit"
+    }
+}

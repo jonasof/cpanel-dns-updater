@@ -5,7 +5,8 @@
         "desarrolla2/cache": "^2.1",
         "monolog/monolog": "^2.0",
         "php-di/php-di": "^6.0",
-        "symfony/translation": "4.*"
+        "symfony/translation": "4.*",
+        "fzaninotto/faker": "^1.9"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.5",

@@ -2,31 +2,26 @@
 
 namespace JonasOF\CpanelDnsUpdater;
 
-use Gufy\CpanelPhp\Cpanel;
+use Gufy\CpanelPhp\CpanelInterface;
 use JonasOF\CpanelDnsUpdater\Exceptions\CpanelApiException;
-use Monolog\Logger;
-use Symfony\Component\Translation\Translator;
 
 class CpanelApi
 {
     /**
-     * @var Cpanel $cpanel
+     * @var CpanelInterface $cpanel
      */
     private $cpanel;
     private $config;
-    private $messages;
-    private $logger;
 
     private $serial_number;
+    private $zones;
 
     const API_VERSION = 2;
 
-    public function __construct(Config $config, Translator $messages, Cpanel $cpanel, Logger $logger)
+    public function __construct(Config $config, CpanelInterface $cpanel)
     {
         $this->config = $config;
-        $this->messages = $messages;
         $this->cpanel = $cpanel;
-        $this->logger = $logger;
     }
 
     public function getDomainInfo(Models\SubdomainChange $domain): ?object
@@ -59,8 +54,7 @@ class CpanelApi
      */
     private function getAllZones()
     {
-        $response = $this->cpanel->execute_action(
-            self::API_VERSION,
+        $response = $this->cpanel->cpanel(
             "ZoneEdit",
             "fetchzone",
             $this->config->get('user'),
@@ -80,7 +74,7 @@ class CpanelApi
         return $zones;
     }
 
-    public function changeDnsIp(Models\SubdomainChange $subdomain, object $domain_info)
+    public function changeDnsIp(Models\SubdomainChange $subdomain, object $domain_info): string
     {
         $payload = [
             'name' => $subdomain->subdomain,
@@ -93,8 +87,7 @@ class CpanelApi
             "serialnum" => (string) $this->serial_number
         ];
 
-        $response = $this->cpanel->execute_action(
-            self::API_VERSION,
+        $response = $this->cpanel->cpanel(
             'ZoneEdit',
             'edit_zone_record',
             $this->config->get('user'),

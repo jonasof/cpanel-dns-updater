@@ -6,6 +6,7 @@ use Symfony\Component\Translation\Loader\ArrayLoader;
 use Gufy\CpanelPhp\Cpanel;
 use Desarrolla2\Cache\Cache;
 use DI\ContainerBuilder;
+use Gufy\CpanelPhp\CpanelInterface;
 use JonasOF\CpanelDnsUpdater\IPGetter;
 use JonasOF\CpanelDnsUpdater\Config;
 use JonasOF\CpanelDnsUpdater\HttpIPGetter;
@@ -23,12 +24,12 @@ $buildConfig = function () {
 $buildCpanel = function (ContainerInterface $c) {
     $config = $c->get(Config::class);
     
-    $cpanel = new Gufy\CpanelPhp\Cpanel(
+    $cpanel = new Cpanel(
         [
-        "host" => $config->get('url'),
-        "username" => $config->get('user'),
-        "password" => $config->get('password'),
-        "auth_type" => "password",
+            "host" => $config->get('url'),
+            "username" => $config->get('user'),
+            "password" => $config->get('password'),
+            "auth_type" => "password",
         ]
     );
 
@@ -78,7 +79,7 @@ $containerBuilder->useAnnotations(false);
 $containerBuilder->addDefinitions(
     [
         Config::class => \DI\factory($buildConfig),
-        Cpanel::class => \DI\factory($buildCpanel),
+        CpanelInterface::class => \DI\factory($buildCpanel),
         Cache::class => \DI\factory($buildCache),
         Translator::class => \DI\factory($buildLanguages),
         IPGetter::class => \DI\autowire(HttpIPGetter::class),
