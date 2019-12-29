@@ -4,7 +4,7 @@ CPANEL DNS UPDATER
 [Descrição em português](LEIAME.md)
 
 This scripts updates the IP of the client subdomain with a server running cPanel. So 
-you can use a cPanel site to provider a dns service like no-ip, providing a full replacement.
+you can use your cPanel site to provide a replacement to a dynamic dns service like "noip.com". 
 
 Example: imagine that you own one website with cPanel, in the domain 
 <mydomain.com>, and you want to point one subdomain to some network like your 
