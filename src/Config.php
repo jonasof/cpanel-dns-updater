@@ -3,6 +3,7 @@
 namespace JonasOF\CpanelDnsUpdater;
 
 use Exception;
+use JonasOF\CpanelDnsUpdater\Config\Subdomain;
 
 class Config
 {
@@ -24,5 +25,22 @@ class Config
     public function get(string $key)
     {
         return $this->config->$key;
+    }
+
+    /** @return Subdomain[] */
+    public function subdomainsToUpdate()
+    {
+        return array_map(function ($subdomain) {
+
+            if (is_string($subdomain)) {
+                return new Subdomain($subdomain);
+            }
+
+            if (is_array($subdomain)) {
+                return new Subdomain($subdomain["name"], $subdomain["types"]);
+            }
+
+            throw new Exception("each subdomains_to_update item should be a string or an array");
+        }, $this->get("subdomains_to_update"));
     }
 }

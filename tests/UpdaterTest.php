@@ -5,6 +5,7 @@ namespace Tests;
 use Desarrolla2\Cache\Adapter\NotCache;
 use Desarrolla2\Cache\Cache;
 use Hamcrest\Matchers;
+use JonasOF\CpanelDnsUpdater\Config\Subdomain;
 use JonasOF\CpanelDnsUpdater\CpanelApi;
 use JonasOF\CpanelDnsUpdater\Models\SubdomainChange;
 use Mockery;
@@ -58,6 +59,6 @@ class CpanelUpdaterTest extends TestCase
 
         $updater = createUpdater($api->getMock());
 
-        $updater->updateDomains($new_ip, ['subdomain.test.com']);
+        $updater->updateDomains($new_ip, [new Subdomain('subdomain.test.com')]);
     }
 }

@@ -17,7 +17,11 @@ return [
     "password" => "mypassword",
 
     // Put your subdomains to update here
-    "subdomains_to_update" => [], // example: ["host1.mysite.com", "host2.mysite.com"]
+    // example: ["host1.mysite.com", "host2.mysite.com"]
+    // Or [
+    //    ["name" => "host1.mysite.com", "types" => ["ipv4", "ipv6"]]
+    // ]
+    "subdomains_to_update" => [],
 
     // The base of above subdomains. It's required to fill this parameter!
     "domain" => "mysite.com",
@@ -55,10 +59,10 @@ return [
         // some examples: http://ipinfo.io/ip http://www.trackip.net/ip http://curlmyip.com/
         // if you prefer, create an external php server with a
         // file "<?php echo $_SERVER['REMOTE_ADDR'];" to provide this service
-        "ipv4_getter" => "http://ipinfo.io/ip",
+        "ipv4_getter" => "https://ipv4.text.wtfismyip.com/",
 
         //Enalbe IPv6 AAAA registers
         "ipv6" => true,
-        "ipv6_getter" => "https://wtfismyip.com/text",
+        "ipv6_getter" => "https://ipv6.text.wtfismyip.com/",
     ]
 ];

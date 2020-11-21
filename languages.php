@@ -9,6 +9,7 @@ return [
         "REAL_EQUAL_DOMAIN_MESSAGE" => "OK    - My IP is equal than cPanel DNS",
         "RETRIVE_ERROR_MESSAGE" => "ERROR - Cannot read my IP remotely",
         "ZONE_NOT_FOUND" => "ERROR - Zone not found",
+        "NO_IP_TYPE_SUBDOMAINS" => "ERROR - No subdomains are configured for the ip type"
     ],
 
     "PT_BR" => [
@@ -19,5 +20,6 @@ return [
         "RETRIVE_ERROR_MESSAGE" => "ERRO - Não foi possível ler meu ip remotamente",
         "DNS_IP_UPDATED_MESSAGE" => "OK   - IP atualizado para: ",
         "ZONE_NOT_FOUND" => "ERRO - Zona não encontrada",
+        "NO_IP_TYPE_SUBDOMAINS" => "ERROR - Nenhum subdomínio foi configurado para o tipo de IP"
     ]
 ];

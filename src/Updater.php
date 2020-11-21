@@ -41,7 +41,7 @@ class Updater
 
             foreach ($subdomains as $subdomain) {
                 $domain = new Models\SubdomainChange([
-                    "subdomain" => $subdomain . ".",
+                    "subdomain" => $subdomain->name . ".",
                     "new_ip" => $new_ip,
                 ]);
 
